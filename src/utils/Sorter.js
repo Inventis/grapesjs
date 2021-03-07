@@ -565,6 +565,11 @@ export default Backbone.View.extend({
       $parent.css('flex-direction') !== 'column'
     )
       return;
+    if (
+      $parent &&
+      $parent.css('display') == 'grid'
+    )
+      return;
     switch (style.position) {
       case 'static':
       case 'relative':
