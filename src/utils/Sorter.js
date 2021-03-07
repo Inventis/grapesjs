@@ -524,6 +524,7 @@ export default Backbone.View.extend({
     const propFloat = $el.css('float');
     if (propFloat && propFloat !== 'none') return;
     if ($parent && $parent.css('display') == 'flex' && $parent.css('flex-direction') !== 'column') return;
+    if ($parent && $parent.css('display') == 'grid') return;
     switch (style.position) {
       case 'static':
       case 'relative':
