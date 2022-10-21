@@ -1,6 +1,5 @@
 /* Adapted for headless */
 /* MIT https://github.com/kenwheeler/cash */
-'use strict';
 
 var doc = typeof document !== 'undefined' ? document : null,
   win = typeof window !== 'undefined' ? window : null,
