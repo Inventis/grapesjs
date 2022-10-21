@@ -329,13 +329,13 @@ export default () => {
      * @param {Object} rte The instance of already defined RTE
      * @private
      * */
-    disable(view, rte) {
+    async disable(view, rte) {
       const { em } = this;
       const customRte = this.customRte;
       var el = view.getChildrenContainer();
 
       if (customRte) {
-        customRte.disable(el, rte);
+        await customRte.disable(el, rte);
       } else {
         rte && rte.disable();
       }
