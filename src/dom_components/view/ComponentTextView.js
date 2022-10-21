@@ -235,17 +235,22 @@ export default class ComponentTextView extends ComponentView {
     $el && $el.off('mousedown', this.disablePropagation);
     $el && $el[method]('mousedown', this.disablePropagation);
 
-    // Fixes #2210 but use this also as a replacement
-    // of this fix: bd7b804f3b46eb45b4398304b2345ce870f232d2
-    if (this.config.draggableComponents) {
-      let { el } = this;
-
-      while (el) {
-        el.draggable = enable ? !1 : !0;
-        // Note: el.parentNode is sometimes null here
-        el = el.parentNode;
-        el && el.tagName == 'BODY' && (el = 0);
-      }
-    }
+    // Inventis: are don't want this behaviour it automatically disables dragging or enables dragging
+    // on the children, while we want to maintain full row dragging, which is also disabled if we set
+    // draggableComponents to false
+    // children don't have valid drop targets in the dom, whgen the RTE re-enables it causes its row to now be
+    // draggable
+    // // Fixes #2210 but use this also as a replacement
+    // // of this fix: bd7b804f3b46eb45b4398304b2345ce870f232d2
+    // if (this.config.draggableComponents) {
+    //   let { el } = this;
+    //
+    //   while (el) {
+    //       el.draggable = enable ? !1 : !0;
+    //     // Note: el.parentNode is sometimes null here
+    //     el = el.parentNode;
+    //     el && el.tagName == 'BODY' && (el = 0);
+    //   }
+    // }
   }
 }
