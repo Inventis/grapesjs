@@ -64,18 +64,16 @@ export default class ComponentTextView extends ComponentView {
     const { rte, em } = this;
     const { result, delegate } = this.canActivate();
 
-    // We place this before stopPropagation in case of nested
-    // text components will not block the editing (#1394)
+    ev?.stopPropagation?.();
+
     if (!result) {
       if (delegate) {
-        ev?.stopPropagation?.();
         em.setSelected(delegate);
         delegate.trigger('active', ev);
       }
       return;
     }
 
-    ev?.stopPropagation?.();
     this.lastContent = this.getContent();
 
     if (rte) {
