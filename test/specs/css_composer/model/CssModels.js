@@ -49,6 +49,7 @@ describe('CssRule', () => {
     var s2 = obj.get('selectors').add({ name: 'test2' });
     obj.set('state', 'hover');
     obj.set('mediaText', '1000');
+    obj.set('atRuleType', 'media');
     expect(obj.compare([s1, s2])).toEqual(false);
     expect(obj.compare([s1, s2], 'hover')).toEqual(false);
     expect(obj.compare([s2, s1], 'hover', '1000')).toEqual(true);
@@ -67,7 +68,7 @@ describe('CssRule', () => {
   test('toCSS returns simple CSS', () => {
     obj.get('selectors').add({ name: 'test1' });
     obj.setStyle({ color: 'red' });
-    expect(obj.toCSS()).toEqual(`.test1{color:red;}`);
+    expect(obj.toCSS()).toEqual('.test1{color:red;}');
   });
 
   test('toCSS wraps correctly inside media rule', () => {
@@ -83,14 +84,14 @@ describe('CssRule', () => {
     obj.set('atRuleType', 'supports');
     obj.get('selectors').add({ name: 'test1' });
     obj.setStyle({ 'font-family': 'Open Sans' });
-    expect(obj.toCSS()).toEqual(`@supports{.test1{font-family:Open Sans;}}`);
+    expect(obj.toCSS()).toEqual('@supports{.test1{font-family:Open Sans;}}');
   });
 
   test('toCSS with a generic single at-rule', () => {
     obj.set('atRuleType', 'font-face');
     obj.set('singleAtRule', 1);
     obj.setStyle({ 'font-family': 'Sans' });
-    expect(obj.toCSS()).toEqual(`@font-face{font-family:Sans;}`);
+    expect(obj.toCSS()).toEqual('@font-face{font-family:Sans;}');
   });
 
   test('toCSS with a generic at-rule and condition', () => {
@@ -98,9 +99,7 @@ describe('CssRule', () => {
     obj.set('mediaText', 'some-condition');
     obj.get('selectors').add({ name: 'test1' });
     obj.setStyle({ 'font-family': 'Open Sans' });
-    expect(obj.toCSS()).toEqual(
-      `@font-face some-condition{.test1{font-family:Open Sans;}}`
-    );
+    expect(obj.toCSS()).toEqual('@font-face some-condition{.test1{font-family:Open Sans;}}');
   });
 });
 

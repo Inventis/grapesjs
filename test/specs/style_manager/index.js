@@ -1,28 +1,30 @@
-import StyleManager from 'style_manager';
-import Models from './model/Models';
-import SectorView from './view/SectorView';
-import SectorsView from './view/SectorsView';
-import PropertyView from './view/PropertyView';
-import PropertySelectView from './view/PropertySelectView';
-import PropertyRadioView from './view/PropertyRadioView';
-import PropertyIntegerView from './view/PropertyIntegerView';
-import PropertyColorView from './view/PropertyColorView';
-import PropertyCompositeView from './view/PropertyCompositeView';
-import PropertyStackView from './view/PropertyStackView';
-import LayerView from './view/LayerView';
+import Editor from 'editor/model/Editor';
 
 describe('StyleManager', () => {
   describe('Main', () => {
-    var obj;
+    let obj;
+    let em;
+    let domc;
+    let dv;
+    let cssc;
+    let sm;
 
     beforeEach(() => {
-      obj = new StyleManager().init({
-        sectors: []
+      em = new Editor({
+        mediaCondition: 'max-width',
+        avoidInlineStyle: true,
       });
+      domc = em.get('DomComponents');
+      cssc = em.get('CssComposer');
+      dv = em.get('DeviceManager');
+      sm = em.get('SelectorManager');
+      obj = em.get('StyleManager');
+      em.get('PageManager').onLoad();
     });
 
     afterEach(() => {
       obj = null;
+      em.destroy();
     });
 
     test('Object exists', () => {
@@ -35,9 +37,9 @@ describe('StyleManager', () => {
 
     test('Add sector', () => {
       obj.addSector('test', {
-        name: 'Test name'
+        name: 'Test name',
       });
-      var sector = obj.getSectors().at(0);
+      var sector = obj.getSectors({ array: true })[0];
       expect(obj.getSectors().length).toEqual(1);
       expect(sector.get('id')).toEqual('test');
       expect(sector.get('name')).toEqual('Test name');
@@ -79,7 +81,7 @@ describe('StyleManager', () => {
     test('Check added property', () => {
       obj.addSector('test', {});
       var prop = obj.addProperty('test', {
-        name: 'test'
+        name: 'test',
       });
       expect(prop.get('name')).toEqual('test');
     });
@@ -109,10 +111,7 @@ describe('StyleManager', () => {
 
     test('Get properties with proper name', () => {
       obj.addSector('test', {});
-      obj.addProperty('test', [
-        { property: 'test-prop' },
-        { property: 'test-prop' }
-      ]);
+      obj.addProperty('test', [{ property: 'test-prop' }, { property: 'test-prop' }]);
       expect(obj.getProperty('test', 'test-prop')).toBeTruthy();
     });
 
@@ -125,41 +124,140 @@ describe('StyleManager', () => {
       expect(obj.render()).toBeTruthy();
     });
 
+    describe('Parent rules', () => {
+      test('No parents without selection', () => {
+        expect(obj.getSelectedParents()).toEqual([]);
+      });
+
+      test('Single class, multiple devices', done => {
+        const cmp = domc.addComponent('<div class="cls"></div>');
+        const [rule1, rule2] = cssc.addRules(`
+          .cls { color: red; }
+          @media (max-width: 992px) {
+            .cls { color: blue; }
+          }
+        `);
+        dv.select('tablet');
+        em.setSelected(cmp);
+        setTimeout(() => {
+          expect(obj.getSelected()).toBe(rule2);
+          expect(obj.getSelectedParents()).toEqual([rule1]);
+          done();
+        });
+      });
+
+      test('With ID, multiple devices', () => {
+        sm.setComponentFirst(true);
+        const cmp = domc.addComponent('<div class="cls" id="id-test"></div>');
+        const [rule1, rule2] = cssc.addRules(`
+          #id-test { color: red; }
+          @media (max-width: 992px) {
+            #id-test { color: blue; }
+          }
+        `);
+        dv.select('tablet');
+        em.setSelected(cmp);
+        obj.__upSel();
+        expect(obj.getSelected()).toBe(rule2);
+        expect(obj.getSelectedParents()).toEqual([rule1]);
+      });
+
+      test('With ID + class, class first', () => {
+        const cmp = domc.addComponent('<div class="cls" id="id-test"></div>');
+        const [rule1, rule2] = cssc.addRules(`
+          .cls { color: red; }
+          #id-test { color: blue; }
+        `);
+        em.setSelected(cmp);
+        obj.__upSel();
+        expect(obj.getSelected()).toBe(rule1);
+        expect(obj.getSelectedParents()).toEqual([rule2]);
+      });
+
+      test('With ID + class, component first', () => {
+        sm.setComponentFirst(true);
+        const cmp = domc.addComponent('<div class="cls" id="id-test"></div>');
+        const [rule1, rule2] = cssc.addRules(`
+          .cls { color: red; }
+          #id-test { color: blue; }
+        `);
+        em.setSelected(cmp);
+        obj.__upSel();
+        expect(obj.getSelected()).toBe(rule2);
+        expect(obj.getSelectedParents()).toEqual([rule1]);
+      });
+
+      test('With ID + class, multiple devices', () => {
+        sm.setComponentFirst(true);
+        const cmp = domc.addComponent('<div class="cls" id="id-test"></div>');
+        const [rule1, rule2] = cssc.addRules(`
+          .cls { color: red; }
+          @media (max-width: 992px) {
+            #id-test { color: blue; }
+          }
+        `);
+        dv.select('tablet');
+        em.setSelected(cmp);
+        obj.__upSel();
+        expect(obj.getSelected()).toBe(rule2);
+        expect(obj.getSelectedParents()).toEqual([rule1]);
+      });
+
+      test('Mixed classes', () => {
+        const cmp = domc.addComponent('<div class="cls1 cls2"></div>');
+        const [rule1, rule2] = cssc.addRules(`
+          .cls1 { color: red; }
+          .cls1.cls2 { color: blue; }
+          .cls2 { color: green; }
+          .cls1.cls3 { color: green; }
+        `);
+        em.setSelected(cmp);
+        obj.__upSel();
+        expect(obj.getSelectedParents().length).toBe(1);
+        expect(obj.getSelected()).toBe(rule2);
+        expect(obj.getSelectedParents()).toEqual([rule1]);
+      });
+    });
+
     describe('Init with configuration', () => {
       beforeEach(() => {
-        obj = new StyleManager().init({
-          sectors: [
-            {
-              id: 'dim',
-              name: 'Dimension',
-              properties: [
-                {
-                  name: 'Width',
-                  property: 'width'
-                },
-                {
-                  name: 'Height',
-                  property: 'height'
-                }
-              ]
-            },
-            {
-              id: 'pos',
-              name: 'position',
-              properties: [
-                {
-                  name: 'Width',
-                  property: 'width'
-                }
-              ]
-            }
-          ]
+        em = new Editor({
+          StyleManager: {
+            sectors: [
+              {
+                id: 'dim',
+                name: 'Dimension',
+                properties: [
+                  {
+                    name: 'Width',
+                    property: 'width',
+                  },
+                  {
+                    name: 'Height',
+                    property: 'height',
+                  },
+                ],
+              },
+              {
+                id: 'pos',
+                name: 'position',
+                properties: [
+                  {
+                    name: 'Width',
+                    property: 'width',
+                  },
+                ],
+              },
+            ],
+          },
         });
+        obj = em.get('StyleManager');
         obj.onLoad();
       });
 
       afterEach(() => {
         obj = null;
+        em.destroy();
       });
 
       test('Sectors added', () => {
@@ -178,6 +276,15 @@ describe('StyleManager', () => {
       test('Property is correct', () => {
         var prop1 = obj.getProperty('dim', 'width');
         expect(prop1.get('name')).toEqual('Width');
+      });
+
+      test('Add built-in', () => {
+        obj.addBuiltIn('test', { type: 'number' });
+        obj.addBuiltIn('test2', { type: 'stack' });
+        const added = obj.addProperty('dim', { extend: 'test' });
+        expect(added.getType()).toEqual('number');
+        const added2 = obj.addProperty('dim', 'test2');
+        expect(added2.getType()).toEqual('stack');
       });
     });
   });

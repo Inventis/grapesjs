@@ -1,22 +1,16 @@
 import ComponentTableBody from './ComponentTableBody';
+import { toLowerCase } from 'utils/mixins';
 
-export default ComponentTableBody.extend(
-  {
-    defaults: {
-      ...ComponentTableBody.prototype.defaults,
-      type: 'thead',
-      tagName: 'thead'
-    }
-  },
-  {
-    isComponent(el) {
-      let result = '';
+const type = 'thead';
 
-      if (el.tagName == 'THEAD') {
-        result = { type: 'thead' };
-      }
-
-      return result;
-    }
+export default class ComponentTableHead extends ComponentTableBody {
+  get defaults() {
+    return {
+      ...super.defaults,
+      type,
+      tagName: type,
+    };
   }
-);
+}
+
+ComponentTableHead.isComponent = el => toLowerCase(el.tagName) === type;

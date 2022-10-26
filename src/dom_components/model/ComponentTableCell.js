@@ -1,27 +1,15 @@
 import Component from './Component';
+import { toLowerCase } from 'utils/mixins';
 
-export default Component.extend(
-  {
-    defaults: {
-      ...Component.prototype.defaults,
+export default class ComponentTableCell extends Component {
+  get defaults() {
+    return {
+      ...super.defaults,
       type: 'cell',
       tagName: 'td',
-      draggable: ['tr']
-    }
-  },
-  {
-    isComponent(el) {
-      let result = '';
-      const tag = el.tagName;
-
-      if (tag == 'TD' || tag == 'TH') {
-        result = {
-          type: 'cell',
-          tagName: tag.toLowerCase()
-        };
-      }
-
-      return result;
-    }
+      draggable: ['tr'],
+    };
   }
-);
+}
+
+ComponentTableCell.isComponent = el => ['td', 'th'].indexOf(toLowerCase(el.tagName)) >= 0;

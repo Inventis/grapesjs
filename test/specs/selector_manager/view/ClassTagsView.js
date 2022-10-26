@@ -38,13 +38,14 @@ describe('ClassTagsView', () => {
     coll = new Selectors();
     view = new ClassTagsView({
       config: { em },
-      collection: coll
+      collection: coll,
+      module: em.get('SelectorManager'),
     });
 
     testContext.targetStub = {
       add(v) {
         return { name: v };
-      }
+      },
     };
 
     compTest = new Component();
@@ -60,6 +61,7 @@ describe('ClassTagsView', () => {
   });
 
   afterEach(() => {
+    target.destroy();
     delete view.collection;
   });
 
@@ -92,22 +94,22 @@ describe('ClassTagsView', () => {
     expect(testContext.input.val()).toBeFalsy();
   });
 
-  test.skip('Check keyup of ESC on input', function() {
+  test.skip('Check keyup of ESC on input', function () {
     this.btnAdd.click();
     sinon.stub(view, 'addNewTag');
     this.input.trigger({
       type: 'keyup',
-      keyCode: 13
+      keyCode: 13,
     });
     expect(view.addNewTag.calledOnce).toEqual(true);
   });
 
-  test.skip('Check keyup on ENTER on input', function() {
+  test.skip('Check keyup on ENTER on input', function () {
     this.btnAdd.click();
     sinon.stub(view, 'endNewTag');
     this.input.trigger({
       type: 'keyup',
-      keyCode: 27
+      keyCode: 27,
     });
     expect(view.endNewTag.calledOnce).toEqual(true);
   });
@@ -133,22 +135,19 @@ describe('ClassTagsView', () => {
     expect(testContext.$tags.html()).toEqual('');
   });
 
-  test('Accept new tags', () => {
+  test('Accept new tags', done => {
     em.setSelected(compTest);
     view.addNewTag('test');
     view.addNewTag('test2');
-    expect(testContext.$tags.children().length).toEqual(2);
+    setTimeout(() => {
+      expect(testContext.$tags.children().length).toEqual(2);
+      done();
+    });
   });
 
   test('New tag correctly added', () => {
     coll.add({ label: 'test' });
-    expect(
-      testContext.$tags
-        .children()
-        .first()
-        .find('[data-tag-name]')
-        .text()
-    ).toEqual('test');
+    expect(testContext.$tags.children().first().find('[data-tag-name]').text()).toEqual('test');
   });
 
   test('States are hidden in case no tags', () => {
@@ -162,32 +161,34 @@ describe('ClassTagsView', () => {
     expect(testContext.$statesC.css('display')).toEqual('');
   });
 
-  test('Update state visibility on new tag', () => {
+  test('Update state visibility on new tag', done => {
     sinon.stub(view, 'updateStateVis');
     em.setSelected(compTest);
     view.addNewTag('test');
-    expect(view.updateStateVis.called).toEqual(true);
+    setTimeout(() => {
+      expect(view.updateStateVis.called).toEqual(true);
+      done();
+    });
   });
 
-  test('Update state visibility on removing of the tag', () => {
+  test('Update state visibility on removing of the tag', done => {
     em.setSelected(compTest);
     view.addNewTag('test');
     sinon.stub(view, 'updateStateVis');
     coll.remove(coll.at(0));
-    expect(view.updateStateVis.calledOnce).toEqual(true);
+    setTimeout(() => {
+      expect(view.updateStateVis.calledOnce).toEqual(true);
+      done();
+    });
   });
 
-  test('Output correctly state options', () => {
-    var view = new ClassTagsView({
-      config: {
-        em: target,
-        states: [{ name: 'testName', label: 'testLabel' }]
-      },
-      collection: coll
+  test('Output correctly state options', done => {
+    target.get('SelectorManager').setStates([{ name: 'testName', label: 'testLabel' }]);
+    setTimeout(() => {
+      const res = '<option value="">- State -</option><option value="testName">testLabel</option>';
+      expect(view.getStates()[0].innerHTML).toEqual(res);
+      done();
     });
-    expect(view.getStateOptions()).toEqual(
-      '<option value="testName">testLabel</option>'
-    );
   });
 
   describe('_commonSelectors', () => {

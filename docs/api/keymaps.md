@@ -19,18 +19,32 @@ const editor = grapesjs.init({
 })
 ```
 
-Once the editor is instantiated you can use its API. Before using these methods you should get the module from the instance
+Once the editor is instantiated you can use its API and listen to its events. Before using these methods, you should get the module from the instance.
 
 ```js
+// Listen to events
+editor.on('keymap:add', () => { ... });
+
+// Use the API
 const keymaps = editor.Keymaps;
+keymaps.add(...);
 ```
 
--   [getConfig][1]
--   [add][2]
--   [get][3]
--   [getAll][4]
--   [remove][5]
--   [removeAll][6]
+## Available Events
+
+*   `keymap:add` - New keymap added. The new keyamp object is passed as an argument
+*   `keymap:remove` - Keymap removed. The removed keyamp object is passed as an argument
+*   `keymap:emit` - Some keymap emitted, in arguments you get keymapId, shortcutUsed, Event
+*   `keymap:emit:{keymapId}` - `keymapId` emitted, in arguments you get keymapId, shortcutUsed, Event
+
+## Methods
+
+*   [getConfig][1]
+*   [add][2]
+*   [get][3]
+*   [getAll][4]
+*   [remove][5]
+*   [removeAll][6]
 
 ## getConfig
 
@@ -44,10 +58,10 @@ Add new keymap
 
 ### Parameters
 
--   `id` **[string][8]** Keymap id
--   `keys` **[string][8]** Keymap keys, eg. `ctrl+a`, `⌘+z, ctrl+z`
--   `handler` **([Function][9] \| [string][8])** Keymap handler, might be a function
--   `opts` **[Object][7]** Options (optional, default `{}`)
+*   `id` **[string][8]** Keymap id
+*   `keys` **[string][8]** Keymap keys, eg. `ctrl+a`, `⌘+z, ctrl+z`
+*   `handler` **([Function][9] | [string][8])** Keymap handler, might be a function
+*   `opts` **[Object][7]** Options (optional, default `{}`)
 
 ### Examples
 
@@ -66,7 +80,7 @@ editor.on('keymap:emit', (id, shortcut, e) => {
 ```
 
 Returns **[Object][7]** Added keymap
- or just a command id as a string
+or just a command id as a string
 
 ## get
 
@@ -74,7 +88,7 @@ Get the keymap by id
 
 ### Parameters
 
--   `id` **[string][8]** Keymap id
+*   `id` **[string][8]** Keymap id
 
 ### Examples
 
@@ -104,7 +118,7 @@ Remove the keymap by id
 
 ### Parameters
 
--   `id` **[string][8]** Keymap id
+*   `id` **[string][8]** Keymap id
 
 ### Examples
 

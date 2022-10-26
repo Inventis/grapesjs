@@ -1,27 +1,30 @@
 import Component from './Component';
+import { toLowerCase } from 'utils/mixins';
 
-export default Component.extend(
-  {
-    defaults: {
-      ...Component.prototype.defaults,
-      type: 'script',
+const type = 'script';
+
+export default class ComponentScript extends Component {
+  get defaults() {
+    return {
+      ...super.defaults,
+      type,
+      tagName: type,
       droppable: false,
       draggable: false,
-      layerable: false
-    }
-  },
-  {
-    isComponent(el) {
-      if (el.tagName == 'SCRIPT') {
-        var result = { type: 'script' };
-
-        if (el.src) {
-          result.src = el.src;
-          result.onload = el.onload;
-        }
-
-        return result;
-      }
-    }
+      layerable: false,
+    };
   }
-);
+}
+
+ComponentScript.isComponent = el => {
+  if (toLowerCase(el.tagName) == type) {
+    const result = { type };
+
+    if (el.src) {
+      result.src = el.src;
+      result.onload = el.onload;
+    }
+
+    return result;
+  }
+};

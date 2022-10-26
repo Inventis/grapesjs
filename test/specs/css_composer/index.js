@@ -1,8 +1,4 @@
-import Models from './model/CssModels';
-import CssRuleView from './view/CssRuleView';
-import CssRulesView from './view/CssRulesView';
 import CssComposer from 'css_composer';
-import e2e from './e2e/CssComposer';
 import utils from './../../test_utils.js';
 import Editor from 'editor/model/Editor';
 
@@ -18,28 +14,34 @@ describe('Css Composer', () => {
       },
       getCacheLoad() {
         return storagMock.load();
-      }
+      },
     };
 
     var setSmConfig = () => {
       config.stm = storagMock;
       config.stm.getConfig = () => ({
         storeCss: 1,
-        storeStyles: 1
+        storeStyles: 1,
       });
     };
     var setEm = () => {
       config.em = editorModel;
     };
 
+    const getCSS = obj =>
+      obj
+        .getAll()
+        .map(r => r.toCSS())
+        .join('');
+
     beforeEach(() => {
       em = new Editor({});
       config = { em };
-      obj = new CssComposer().init(config);
+      obj = new CssComposer(em);
     });
 
     afterEach(() => {
-      obj = null;
+      em.destroy();
     });
 
     test('Object exists', () => {
@@ -47,19 +49,13 @@ describe('Css Composer', () => {
     });
 
     test('storageKey returns array', () => {
-      expect(obj.storageKey() instanceof Array).toEqual(true);
-    });
-
-    test('storageKey returns correct composition', () => {
-      setSmConfig();
-      expect(obj.storageKey()).toEqual(['css', 'styles']);
+      expect(obj.storageKey).toEqual('styles');
     });
 
     test('Store data', () => {
       setSmConfig();
       setEm();
-      var expected = { css: 'testCss', styles: '[]' };
-      expect(obj.store(1)).toEqual(expected);
+      expect(JSON.parse(JSON.stringify(obj.store()))).toEqual({ styles: [] });
     });
 
     test('Rules are empty', () => {
@@ -85,14 +81,7 @@ describe('Css Composer', () => {
       var sel = new obj.Selectors([{ name: 'test1' }]);
       var rule = obj.add(sel.models);
       expect(obj.getAll().length).toEqual(1);
-      expect(
-        obj
-          .getAll()
-          .at(0)
-          .get('selectors')
-          .at(0)
-          .get('name')
-      ).toEqual('test1');
+      expect(obj.getAll().at(0).get('selectors').at(0).get('name')).toEqual('test1');
     });
 
     test('Returns correct rule with the same selector', () => {
@@ -172,13 +161,9 @@ describe('Css Composer', () => {
       expect(obj.getAll().length).toEqual(1);
       const rule = obj.getIdRule(name);
       expect(rule.selectorsToString()).toEqual(`#${name}`);
-      expect(rule.styleToString()).toEqual(`color:red;`);
-      expect(rule.styleToString({ important: 1 })).toEqual(
-        `color:red !important;`
-      );
-      expect(rule.styleToString({ important: ['color'] })).toEqual(
-        `color:red !important;`
-      );
+      expect(rule.styleToString()).toEqual('color:red;');
+      expect(rule.styleToString({ important: 1 })).toEqual('color:red !important;');
+      expect(rule.styleToString({ important: ['color'] })).toEqual('color:red !important;');
     });
 
     test('Create a rule with id selector and state by using setIdRule()', () => {
@@ -196,7 +181,7 @@ describe('Css Composer', () => {
       expect(obj.getAll().length).toEqual(1);
       const rule = obj.getClassRule(name);
       expect(rule.selectorsToString()).toEqual(`.${name}`);
-      expect(rule.styleToString()).toEqual(`color:red;`);
+      expect(rule.styleToString()).toEqual('color:red;');
     });
 
     test('Create a rule with class selector and state by using setClassRule()', () => {
@@ -214,7 +199,7 @@ describe('Css Composer', () => {
       expect(obj.getAll().length).toEqual(1);
       const rule = obj.getRule(selector);
       expect(rule.selectorsToString()).toEqual(selector);
-      expect(rule.styleToString()).toEqual(`color:red;`);
+      expect(rule.styleToString()).toEqual('color:red;');
     });
 
     test('Avoid creating multiple rules with the same selector', () => {
@@ -224,7 +209,7 @@ describe('Css Composer', () => {
       expect(obj.getAll().length).toEqual(1);
       const rule = obj.getRule(selector);
       expect(rule.selectorsToString()).toEqual(selector);
-      expect(rule.styleToString()).toEqual(`color:blue;`);
+      expect(rule.styleToString()).toEqual('color:blue;');
     });
 
     test('Create a class-based rule with setRule', () => {
@@ -233,7 +218,7 @@ describe('Css Composer', () => {
       expect(obj.getAll().length).toEqual(1);
       const rule = obj.getRule(selector);
       expect(rule.selectorsToString()).toEqual(selector);
-      expect(rule.styleToString()).toEqual(`color:red;`);
+      expect(rule.styleToString()).toEqual('color:red;');
     });
 
     test('Create a class-based rule with a state, by using setRule', () => {
@@ -242,7 +227,7 @@ describe('Css Composer', () => {
       expect(obj.getAll().length).toEqual(1);
       const rule = obj.getRule(selector);
       expect(rule.selectorsToString()).toEqual(selector);
-      expect(rule.styleToString()).toEqual(`color:red;`);
+      expect(rule.styleToString()).toEqual('color:red;');
     });
 
     test('Create a rule with class-based and mixed selectors', () => {
@@ -251,7 +236,7 @@ describe('Css Composer', () => {
       expect(obj.getAll().length).toEqual(1);
       const rule = obj.getRule(selector);
       expect(rule.selectorsToString()).toEqual(selector);
-      expect(rule.styleToString()).toEqual(`color:red;`);
+      expect(rule.styleToString()).toEqual('color:red;');
     });
 
     test('Create a rule with only mixed selectors', () => {
@@ -261,7 +246,7 @@ describe('Css Composer', () => {
       const rule = obj.getRule(selector);
       expect(rule.get('selectors').length).toEqual(0);
       expect(rule.selectorsToString()).toEqual(selector);
-      expect(rule.styleToString()).toEqual(`color:red;`);
+      expect(rule.styleToString()).toEqual('color:red;');
     });
 
     test('Create a rule with atRule', () => {
@@ -271,26 +256,24 @@ describe('Css Composer', () => {
           style: { color: 'blue' },
           opts: {
             atRuleType: 'media',
-            atRuleParams: 'screen and (min-width: 480px)'
-          }
+            atRuleParams: 'screen and (min-width: 480px)',
+          },
         },
         {
           selector: '.class1:hover',
           style: { color: 'red' },
           opts: {
             atRuleType: 'media',
-            atRuleParams: 'screen and (min-width: 480px)'
-          }
-        }
+            atRuleParams: 'screen and (min-width: 480px)',
+          },
+        },
       ];
       toTest.forEach(test => {
         const { selector, style, opts } = test;
         const result = obj.setRule(selector, style, opts);
         expect(obj.getAll().length).toEqual(1);
         const rule = obj.getRule(selector, opts);
-        expect(rule.getAtRule()).toEqual(
-          `@${opts.atRuleType} ${opts.atRuleParams}`
-        );
+        expect(rule.getAtRule()).toEqual(`@${opts.atRuleType} ${opts.atRuleParams}`);
         expect(rule.selectorsToString()).toEqual(selector);
         expect(rule.getStyle()).toEqual(style);
       });
@@ -306,20 +289,104 @@ describe('Css Composer', () => {
         {
           selector: '.class4, .class1 .class2',
           style: { color: 'blue' },
-          opt: { atRuleType: 'media', atRuleParams: '(min-width: 480px)' }
-        }
+          opt: { atRuleType: 'media', atRuleParams: '(min-width: 480px)' },
+        },
       ];
       toTest.forEach(test => {
         const { selector, style, opt = {} } = test;
         obj.setRule(selector, style, opt);
         const rule = obj.getRule(selector, opt);
-        const atRule = `${opt.atRuleType || ''} ${opt.atRuleParams ||
-          ''}`.trim();
+        const atRule = `${opt.atRuleType || ''} ${opt.atRuleParams || ''}`.trim();
         expect(rule.getAtRule()).toEqual(atRule ? `@${atRule}` : '');
         expect(rule.selectorsToString()).toEqual(selector);
         expect(rule.getStyle()).toEqual(style);
       });
       expect(obj.getAll().length).toEqual(toTest.length);
+    });
+
+    test('Get the right rule, containg similar selector names', () => {
+      const all = obj.getAll();
+      const name = 'rule-test';
+      const selClass = `.${name}`;
+      const selId = `#${name}`;
+      const decl = '{colore:red;}';
+      all.add(`${selClass}${decl} ${selId}${decl}`);
+      expect(all.length).toBe(2);
+      const ruleClass = all.at(0);
+      const ruleId = all.at(1);
+      // Pre-check
+      expect(ruleClass.selectorsToString()).toBe(selClass);
+      expect(ruleId.selectorsToString()).toBe(selId);
+      expect(ruleClass.toCSS()).toBe(`${selClass}${decl}`);
+      expect(ruleId.toCSS()).toBe(`${selId}${decl}`);
+      // Check the get with the right rule
+      expect(obj.get(ruleClass.getSelectors())).toBe(ruleClass);
+      expect(obj.get(ruleId.getSelectors())).toBe(ruleId);
+    });
+
+    describe('getRules', () => {
+      test('Get rule by class selectors', () => {
+        obj.addCollection(`
+          .aaa.bbb {
+            display:flex;
+            padding: 10px 0;
+            background:green;
+          }
+        `);
+        const [result] = obj.getRules('.aaa.bbb');
+        expect(result.selectorsToString()).toBe('.aaa.bbb');
+        // TODO The order of classes should not matter
+        // const [result2] = obj.getRules('.bbb.aaa');
+        // expect(result2.selectorsToString()).toBe('.aaa.bbb');
+      });
+    });
+
+    describe('Collections', () => {
+      test('Add a single rule as CSS string', () => {
+        const cssRule = '.test-rule{color:red;}';
+        obj.addCollection(cssRule);
+        expect(obj.getAll().length).toEqual(1);
+        expect(getCSS(obj)).toEqual(cssRule);
+      });
+      test('Add multiple rules as CSS string', () => {
+        const cssRules = [
+          '.test-rule{color:red;}',
+          '.test-rule:hover{color:blue;}',
+          '@media (max-width: 992px){.test-rule{color:darkred;}}',
+          '@media (max-width: 992px){.test-rule:hover{color:darkblue;}}',
+        ];
+        const cssString = cssRules.join('');
+        obj.addCollection(cssString);
+        expect(obj.getAll().length).toEqual(cssRules.length);
+        expect(getCSS(obj)).toEqual(cssString);
+      });
+      test('Able to return the rule inserted as string', () => {
+        const cssRule = `
+        .test-rule1 {color:red;}
+        .test-rule2:hover {
+          color: blue;
+        }
+        @media (max-width: 992px) {
+          .test-rule3 {
+            color: darkred;
+          }
+          .test-rule4:hover {
+            color: darkblue;
+          }
+        }
+        `;
+        const result = obj.addCollection(cssRule);
+        const [rule1, rule2, rule3, rule4] = result;
+        expect(result.length).toEqual(4);
+        expect(obj.getAll().length).toEqual(4);
+
+        expect(obj.get('.test-rule1')).toBe(rule1);
+        expect(obj.get('.test-rule1', 'hover')).toBe(null);
+        expect(obj.get('.test-rule2', 'hover')).toBe(rule2);
+        expect(rule3.get('mediaText')).toBe('(max-width: 992px)');
+        expect(obj.get('.test-rule3', null, '(max-width: 992px)')).toBe(rule3);
+        expect(obj.get('.test-rule4', 'hover', '(max-width: 992px)')).toBe(rule4);
+      });
     });
   });
 });

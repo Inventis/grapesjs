@@ -1,51 +1,30 @@
 import Selector from 'selector_manager/model/Selector';
-import Selectors from 'selector_manager/model/Selectors';
-import ClassTagsView from 'selector_manager/view/ClassTagsView';
 
 describe('E2E tests', () => {
-  var fixtures;
-  var components;
-  var tagEl;
-  var gjs;
-
-  var instClassTagViewer = (gjs, fixtures) => {
-    var tagEl;
-    var clm = gjs.editor.get('SelectorManager');
-
-    if (clm) {
-      tagEl = new ClassTagsView({
-        collection: new Selectors([]),
-        config: { em: gjs.editor }
-      }).render();
-      fixtures.appendChild(tagEl.el);
-    }
-
-    return tagEl;
-  };
-  /*
-    before(function () {
-      this.$fixtures  = $("#fixtures");
-      this.$fixture   = $('<div id="SelectorManager-fixture"></div>');
-    });
-*/
-  beforeEach(() => {
-    document.body.innerHTML =
-      '<div id="fixtures"><div id="SelectorManager-fixture"></div></div>';
-    fixtures = document.body.firstChild;
-    gjs = grapesjs.init({
-      stylePrefix: '',
-      storageManager: { autoload: 0, type: 0 },
-      assetManager: {
-        storageType: 'none'
-      },
-      container: '#SelectorManager-fixture'
-    });
-  });
+  let fixtures;
+  let components;
+  let tagEl;
+  let gjs;
+  let module;
 
   describe('Interaction with Components', () => {
     beforeEach(() => {
+      document.body.innerHTML = '<div id="fixtures"><div id="SelectorManager-fixture"></div></div>';
+      fixtures = document.body.firstChild;
+      gjs = grapesjs.init({
+        stylePrefix: '',
+        storageManager: { autoload: 0, type: 0 },
+        assetManager: { storageType: 'none' },
+        container: '#SelectorManager-fixture',
+      });
       components = gjs.getComponents();
-      tagEl = instClassTagViewer(gjs, fixtures);
+      module = gjs.Selectors;
+      fixtures.appendChild(module.render());
+      tagEl = module.selectorTags;
+    });
+
+    afterEach(() => {
+      gjs.destroy();
     });
 
     test('Assign correctly new class to component', () => {
@@ -54,18 +33,13 @@ describe('E2E tests', () => {
       gjs.select(model);
       tagEl.addNewTag('test');
       expect(model.get('classes').length).toEqual(1);
-      expect(
-        model
-          .get('classes')
-          .at(0)
-          .get('name')
-      ).toEqual('test');
+      expect(model.get('classes').at(0).get('name')).toEqual('test');
     });
 
     test('Classes from components are correctly imported inside main container', () => {
       var model = components.add([
         { classes: ['test11', 'test12', 'test13'] },
-        { classes: ['test11', 'test22', 'test22'] }
+        { classes: ['test11', 'test22', 'test22'] },
       ]);
       expect(gjs.editor.get('SelectorManager').getAll().length).toEqual(4);
     });
@@ -73,10 +47,7 @@ describe('E2E tests', () => {
     test('Class imported into component is the same model from main container', () => {
       var model = components.add({ classes: ['test1'] });
       var clModel = model.get('classes').at(0);
-      var clModel2 = gjs.editor
-        .get('SelectorManager')
-        .getAll()
-        .at(0);
+      var clModel2 = gjs.editor.get('SelectorManager').getAll().at(0);
       expect(clModel).toEqual(clModel2);
     });
 
@@ -85,25 +56,20 @@ describe('E2E tests', () => {
       gjs.select(model);
       tagEl.addNewTag('test');
       tagEl.addNewTag('test');
-      expect(model.getSelectors().length).toEqual(1);
-      expect(
-        model
-          .getSelectors()
-          .at(0)
-          .get('name')
-      ).toEqual('test');
-      expect(tagEl.collection.length).toEqual(1);
-      expect(tagEl.collection.at(0).get('name')).toEqual('test');
+      const sels = model.getSelectors();
+      // Component has 1 selector
+      expect(sels.length).toEqual(1);
+      expect(sels.at(0).get('name')).toEqual('test');
+      // One only selector added
+      expect(module.getAll().length).toEqual(1);
+      expect(module.getAll().at(0).get('name')).toEqual('test');
     });
 
     test('Removing from container removes also from selected component', () => {
       var model = components.add({});
       gjs.editor.setSelected(model);
       tagEl.addNewTag('test');
-      tagEl
-        .getClasses()
-        .find('.tag #close')
-        .trigger('click');
+      tagEl.getClasses().find('.tag #close').trigger('click');
       setTimeout(() => expect(model.get('classes').length).toEqual(0));
     });
 
@@ -134,8 +100,8 @@ describe('E2E tests', () => {
           { name: 'test9', type: Selector.TYPE_ID, protected: 1 },
           { label: 'test10' },
           { label: 'test11', type: Selector.TYPE_ID },
-          { label: 'test12', protected: 1 }
-        ]
+          { label: 'test12', protected: 1 },
+        ],
       });
 
       const modelTr = JSON.parse(JSON.stringify(model));
@@ -152,7 +118,7 @@ describe('E2E tests', () => {
         { name: 'test9', type: Selector.TYPE_ID, protected: 1 },
         'test10',
         '#test11',
-        { name: 'test12', protected: 1 }
+        { name: 'test12', protected: 1 },
       ]);
     });
   });

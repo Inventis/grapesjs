@@ -1,4 +1,5 @@
 import path from 'path';
+import webpack from 'webpack';
 import pkg from './package.json';
 
 const rootDir = path.resolve(__dirname);
@@ -11,28 +12,26 @@ export default ({ config }) => ({
     libraryExport: 'default',
   },
   devServer: {
+    ...config.devServer,
+    static: [rootDir],
     headers: { 'Access-Control-Allow-Origin': '*' },
-    disableHostCheck: true,
-  },
-  module: {
-    rules: [
-      {
-        test: /\/index\.js$/,
-        loader: 'string-replace-loader',
-        query: {
-          search: '<# VERSION #>',
-          replace: pkg.version
-        }
-      },
-      ...config.module.rules,
-    ],
+    allowedHosts: 'all',
   },
   resolve: {
-    modules: ['src', 'node_modules'],
+    ...config.resolve,
+    modules: [
+      ...(config.resolve && config.resolve.modules),
+      'src'
+    ],
     alias: {
-      jquery: 'cash-dom',
+      ...(config.resolve && config.resolve.alias),
+      jquery: 'utils/cash-dom',
       backbone: `${rootDir}/node_modules/backbone`,
       underscore: `${rootDir}/node_modules/underscore`,
     }
   },
+  plugins: [
+    new webpack.DefinePlugin({ __GJS_VERSION__: `'${pkg.version}'` }),
+    ...config.plugins,
+  ]
 });

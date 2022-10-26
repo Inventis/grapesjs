@@ -1,13 +1,13 @@
 import { isFunction } from 'underscore';
-import Backbone from 'backbone';
-
-const Model = Backbone.Model;
-const View = Backbone.View;
+import { View, Model } from '../../common';
 
 export default {
   types: [],
 
-  initialize(models, opts) {
+  initialize(models, opts = {}) {
+    const { em } = opts;
+    this.em = em;
+    this.opts = opts;
     this.model = (attrs = {}, options = {}) => {
       let Model, View, type;
 
@@ -24,7 +24,7 @@ export default {
         attrs = typeFound.attributes;
       }
 
-      const model = new Model(attrs, options);
+      const model = new Model(attrs, { ...options, em });
       model.typeView = View;
       return model;
     };
@@ -43,15 +43,12 @@ export default {
     for (let i = 0; i < types.length; i++) {
       const type = types[i];
       let typeFound = type.isType(value);
-      typeFound =
-        typeof typeFound == 'boolean' && typeFound
-          ? { type: type.id }
-          : typeFound;
+      typeFound = typeof typeFound == 'boolean' && typeFound ? { type: type.id } : typeFound;
 
       if (typeFound) {
         return {
           type,
-          attributes: typeFound
+          attributes: typeFound,
         };
       }
     }
@@ -59,7 +56,7 @@ export default {
     // If, for any reason, the type is not found it'll return the base one
     return {
       type: this.getBaseType(),
-      attributes: value
+      attributes: value,
     };
   },
 
@@ -115,14 +112,8 @@ export default {
     const ModelInst = type ? type.model : baseType.model;
     const ViewInst = type ? type.view : baseType.view;
     let { model, view, isType } = definition;
-    model =
-      model instanceof Model || isFunction(model)
-        ? model
-        : ModelInst.extend(model || {});
-    view =
-      view instanceof View || isFunction(view)
-        ? view
-        : ViewInst.extend(view || {});
+    model = model instanceof Model || isFunction(model) ? model : ModelInst.extend(model || {});
+    view = view instanceof View || isFunction(view) ? view : ViewInst.extend(view || {});
 
     // New API
     if (this.extendViewApi && !definition.model && !definition.view) {
@@ -139,12 +130,12 @@ export default {
       definition.view = view;
       definition.isType =
         isType ||
-        function(value) {
+        function (value) {
           if (value && value.type == id) {
             return true;
           }
         };
       this.getTypes().unshift(definition);
     }
-  }
+  },
 };

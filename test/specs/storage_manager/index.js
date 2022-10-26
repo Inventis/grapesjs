@@ -1,5 +1,4 @@
 import StorageManager from 'storage_manager';
-import Models from './model/Models';
 
 describe('Storage Manager', () => {
   describe('Main', () => {
@@ -49,12 +48,13 @@ describe('Storage Manager', () => {
       expect(obj.getCurrent()).toEqual('remote');
     });
 
-    test('Store do not execute if empty', () => {
-      expect(obj.store({ item: 'test' })).toBeUndefined();
+    test('Store is executed', async () => {
+      const spy = jest.spyOn(obj, '__exec');
+      await obj.store({ item: 'test' });
+      expect(spy).toBeCalledTimes(1);
     });
 
     test('Load default storages ', () => {
-      obj.loadDefaultProviders();
       expect(obj.get('local')).toBeTruthy();
       expect(obj.get('remote')).toBeTruthy();
       expect(obj.get('test')).toBeFalsy();
@@ -69,13 +69,13 @@ describe('Storage Manager', () => {
         },
         load(keys) {
           return storeValue;
-        }
+        },
       };
 
       beforeEach(() => {
         storeValue = [];
         obj = new StorageManager().init({
-          type: storageId
+          type: storageId,
         });
         obj.add(storageId, storage);
       });
@@ -87,7 +87,7 @@ describe('Storage Manager', () => {
       test('Store and load data', () => {
         var data = {
           item: 'testData',
-          item2: 'testData2'
+          item2: 'testData2',
         };
         var data2 = {};
         var id = obj.getConfig().id;

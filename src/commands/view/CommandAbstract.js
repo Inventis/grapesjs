@@ -1,7 +1,6 @@
-import Backbone from 'backbone';
-const $ = Backbone.$;
+import { Model } from '../../common';
 
-export default Backbone.View.extend({
+export default class CommandAbstract extends Model {
   /**
    * Initialize method that can't be removed
    * @param  {Object}  o Options
@@ -18,26 +17,15 @@ export default Backbone.View.extend({
     this.freezClass = this.ppfx + 'freezed';
 
     this.canvas = this.em.get && this.em.get('Canvas');
-
-    if (this.em.get) this.setElement(this.getCanvas());
-
-    if (this.canvas) {
-      this.$canvas = this.$el;
-      // this.$wrapper = $(this.getCanvasWrapper());
-      // this.frameEl = this.canvas.getFrameEl();
-      this.canvasTool = this.getCanvasTools();
-      // this.bodyEl = this.getCanvasBody();
-    }
-
     this.init(this.config);
-  },
+  }
 
   /**
    * On frame scroll callback
    * @param  {[type]} e [description]
    * @return {[type]}   [description]
    */
-  onFrameScroll(e) {},
+  onFrameScroll(e) {}
 
   /**
    * Returns canval element
@@ -45,7 +33,7 @@ export default Backbone.View.extend({
    */
   getCanvas() {
     return this.canvas.getElement();
-  },
+  }
 
   /**
    * Get canvas body element
@@ -53,15 +41,7 @@ export default Backbone.View.extend({
    */
   getCanvasBody() {
     return this.canvas.getBody();
-  },
-
-  /**
-   * Get canvas wrapper element
-   * @return {HTMLElement}
-   */
-  getCanvasWrapper() {
-    return this.canvas.getWrapperEl();
-  },
+  }
 
   /**
    * Get canvas wrapper element
@@ -69,7 +49,7 @@ export default Backbone.View.extend({
    */
   getCanvasTools() {
     return this.canvas.getToolsEl();
-  },
+  }
 
   /**
    * Get the offset of the element
@@ -80,16 +60,16 @@ export default Backbone.View.extend({
     var rect = el.getBoundingClientRect();
     return {
       top: rect.top + el.ownerDocument.body.scrollTop,
-      left: rect.left + el.ownerDocument.body.scrollLeft
+      left: rect.left + el.ownerDocument.body.scrollLeft,
     };
-  },
+  }
 
   /**
    * Callback triggered after initialize
    * @param  {Object}  o   Options
    * @private
    * */
-  init(o) {},
+  init(o) {}
 
   /**
    * Method that run command
@@ -111,7 +91,7 @@ export default Backbone.View.extend({
     editor.trigger(`run:${id}`, result, options);
     editor.trigger('run', id, result, options);
     return result;
-  },
+  }
 
   /**
    * Method that run command
@@ -127,14 +107,14 @@ export default Backbone.View.extend({
     editor.trigger(`stop:${id}`, result, options);
     editor.trigger('stop', id, result, options);
     return result;
-  },
+  }
 
   /**
    * Stop current command
    */
-  stopCommand() {
-    this.em.get('Commands').stop(this.id);
-  },
+  stopCommand(opts) {
+    this.em.get('Commands').stop(this.id, opts);
+  }
 
   /**
    * Method that run command
@@ -142,7 +122,7 @@ export default Backbone.View.extend({
    * @param  {Object}  sender  Button sender
    * @private
    * */
-  run(em, sender) {},
+  run(em, sender) {}
 
   /**
    * Method that stop command
@@ -151,4 +131,4 @@ export default Backbone.View.extend({
    * @private
    * */
   stop(em, sender) {}
-});
+}

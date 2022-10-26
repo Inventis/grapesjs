@@ -1,25 +1,17 @@
-import Component from './ComponentSvg';
+import ComponentSvg from './ComponentSvg';
 
 /**
  * Component for inner SVG elements
  */
-export default Component.extend(
-  {
-    defaults: {
-      ...Component.prototype.defaults,
+export default class ComponentSvgln extends ComponentSvg {
+  get defaults() {
+    return {
+      ...super.defaults,
       selectable: false,
       hoverable: false,
-      layerable: false
-    }
-  },
-  {
-    isComponent(el) {
-      if (Component.isComponent(el) && el.tagName.toLowerCase() !== 'svg') {
-        return {
-          tagName: el.tagName,
-          type: 'svg-in'
-        };
-      }
-    }
+      layerable: false,
+    };
   }
-);
+}
+
+ComponentSvgln.isComponent = (el, opts = {}) => !!opts.inSvg;

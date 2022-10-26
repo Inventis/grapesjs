@@ -1,12 +1,12 @@
 import { isString } from 'underscore';
 import TraitView from './TraitView';
 
-export default TraitView.extend({
-  events: {
-    'click button': 'handleClick'
-  },
+export default class TraitButtonView extends TraitView {
+  templateInput = '';
 
-  templateInput: '',
+  onChange() {
+    this.handleClick();
+  }
 
   handleClick() {
     const { model, em } = this;
@@ -19,13 +19,13 @@ export default TraitView.extend({
         command(em.get('Editor'), model);
       }
     }
-  },
+  }
 
   renderLabel() {
     if (this.model.get('label')) {
       TraitView.prototype.renderLabel.apply(this, arguments);
     }
-  },
+  }
 
   getInputEl() {
     const { model, ppfx } = this;
@@ -37,4 +37,7 @@ export default TraitView.extend({
     }">${label}</button>`;
     return input;
   }
-});
+}
+
+// Fix #4388
+TraitButtonView.prototype.eventCapture = ['click button'];

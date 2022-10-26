@@ -3,7 +3,6 @@
 $app-prefix:        'gjs-' !default;
 $nv-prefix:         $app-prefix !default;
 $rte-prefix:        $app-prefix + 'rte-' !default;
-$comp-prefix:       $app-prefix + 'comp-' !default;
 $mdl-prefix:        $app-prefix + 'mdl-' !default;
 $am-prefix:         $app-prefix + 'am-' !default;
 $cm-prefix:         $app-prefix + 'cm-' !default;
@@ -13,6 +12,7 @@ $sm-prefix:         $app-prefix + 'sm-' !default;
 $cv-prefix:         $app-prefix + 'cv-' !default;
 $clm-prefix:        $app-prefix + 'clm-' !default;
 $trt-prefix:        $app-prefix + 'trt-' !default;
+$cui-cls:        $app-prefix + 'cui' !default;
 
 /*
   New Pattern Color System

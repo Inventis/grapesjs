@@ -1,7 +1,8 @@
-import $ from 'cash-dom';
-import Editor from './editor';
 import { isElement, isFunction } from 'underscore';
-import polyfills from 'utils/polyfills';
+import $ from './utils/cash-dom';
+import Editor from './editor';
+import polyfills from './utils/polyfills';
+import { getGlobal } from './utils/mixins';
 import PluginManager from './plugin_manager';
 
 polyfills();
@@ -16,7 +17,7 @@ const defaultConfig = {
   plugins: [],
 
   // Custom options for plugins
-  pluginsOpts: {}
+  pluginsOpts: {},
 };
 
 export default {
@@ -27,7 +28,7 @@ export default {
   plugins,
 
   // Will be replaced on build
-  version: '<# VERSION #>',
+  version: __GJS_VERSION__,
 
   /**
    * Initialize the editor with passed options
@@ -36,6 +37,7 @@ export default {
    * @param {Boolean} [config.autorender=true] If true, auto-render the content
    * @param {Array} [config.plugins=[]] Array of plugins to execute on start
    * @param {Object} [config.pluginsOpts={}] Custom options for plugins
+   * @param {Boolean} [config.headless=false] Init headless editor
    * @return {Editor} Editor instance
    * @example
    * var editor = grapesjs.init({
@@ -45,22 +47,23 @@ export default {
    * })
    */
   init(config = {}) {
+    const { headless } = config;
     const els = config.container;
-    if (!els) throw new Error("'container' is required");
+    if (!els && !headless) throw new Error("'container' is required");
     config = { ...defaultConfig, ...config, grapesjs: this };
-    config.el = isElement(els) ? els : document.querySelector(els);
-    const editor = new Editor(config).init();
+    config.el = !headless && (isElement(els) ? els : document.querySelector(els));
+    const editor = new Editor(config, { $ });
     const em = editor.getModel();
 
     // Load plugins
     config.plugins.forEach(pluginId => {
-      let plugin = plugins.get(pluginId);
+      let plugin = isFunction(pluginId) ? pluginId : plugins.get(pluginId);
       const plgOptions = config.pluginsOpts[pluginId] || {};
 
       // Try to search in global context
       if (!plugin) {
-        const wplg = window[pluginId];
-        plugin = wplg && wplg.default ? wplg.default : wplg;
+        const wplg = getGlobal()[pluginId];
+        plugin = wplg?.default || wplg;
       }
 
       if (plugin) {
@@ -70,7 +73,7 @@ export default {
       } else {
         em.logWarning(`Plugin ${pluginId} not found`, {
           context: 'plugins',
-          plugin: pluginId
+          plugin: pluginId,
         });
       }
     });
@@ -79,9 +82,9 @@ export default {
     // A plugin might have extended/added some custom type so this
     // is a good point to load stuff like components, css rules, etc.
     em.loadOnStart();
-    config.autorender && editor.render();
+    config.autorender && !headless && editor.render();
     editors.push(editor);
 
     return editor;
-  }
+  },
 };

@@ -15,17 +15,29 @@ const editor = grapesjs.init({
 })
 ```
 
-Once the editor is instantiated you can use its API. Before using these methods you should get the module from the instance
+Once the editor is instantiated you can use its API and listen to its events. Before using these methods, you should get the module from the instance.
 
 ```js
+// Listen to events
+editor.on('rte:enable', () => { ... });
+
+// Use the API
 const rte = editor.RichTextEditor;
+rte.add(...);
 ```
 
--   [add][3]
--   [get][4]
--   [getAll][5]
--   [remove][6]
--   [getToolbarEl][7]
+## Available Events
+
+*   `rte:enable` - RTE enabled. The view, on which RTE is enabled, is passed as an argument
+*   `rte:disable` - RTE disabled. The view, on which RTE is disabled, is passed as an argument
+
+## Methods
+
+*   [add][3]
+*   [get][4]
+*   [getAll][5]
+*   [remove][6]
+*   [getToolbarEl][7]
 
 ## add
 
@@ -33,8 +45,8 @@ Add a new action to the built-in RTE toolbar
 
 ### Parameters
 
--   `name` **[string][8]** Action name
--   `action` **[Object][9]** Action options (optional, default `{}`)
+*   `name` **[string][8]** Action name
+*   `action` **[Object][9]** Action options (optional, default `{}`)
 
 ### Examples
 
@@ -102,7 +114,7 @@ Get the action by its name
 
 ### Parameters
 
--   `name` **[string][8]** Action name
+*   `name` **[string][8]** Action name
 
 ### Examples
 
@@ -125,7 +137,7 @@ Remove the action from the toolbar
 
 ### Parameters
 
--   `name` **[string][8]** 
+*   `name` **[string][8]** 
 
 ### Examples
 

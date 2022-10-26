@@ -1,7 +1,8 @@
 import Backbone from 'backbone';
 import { isUndefined } from 'underscore';
+import { removeEl } from '../../utils/dom';
 
-export default Backbone.View.extend({
+export default class ComponentsView extends Backbone.View {
   initialize(o) {
     this.opts = o || {};
     this.config = o.config || {};
@@ -10,20 +11,20 @@ export default Backbone.View.extend({
     this.listenTo(coll, 'add', this.addTo);
     this.listenTo(coll, 'reset', this.resetChildren);
     this.listenTo(coll, 'remove', this.removeChildren);
-  },
+  }
 
   removeChildren(removed, coll, opts = {}) {
     removed.views.forEach(view => {
       if (!view) return;
       const { childrenView, scriptContainer } = view;
       childrenView && childrenView.stopListening();
-      scriptContainer && scriptContainer.remove();
+      removeEl(scriptContainer);
       view.remove.apply(view);
     });
 
     const inner = removed.components();
     inner.forEach(it => this.removeChildren(it, coll, opts));
-  },
+  }
 
   /**
    * Add to collection
@@ -44,7 +45,7 @@ export default Backbone.View.extend({
       };
       triggerAdd(model);
     }
-  },
+  }
 
   /**
    * Add new object to collection
@@ -61,9 +62,8 @@ export default Backbone.View.extend({
     const fragment = fragmentEl || null;
     const { frameView = {} } = config;
     const sameFrameView = frameView.model && model.getView(frameView.model);
-    const dt =
-      opts.componentTypes || (em && em.get('DomComponents').getTypes());
-    const type = model.get('type');
+    const dt = opts.componentTypes || (em && em.get('DomComponents').getTypes());
+    const type = model.get('type') || 'default';
     let viewObject = this.compView;
 
     for (let it = 0; it < dt.length; it++) {
@@ -77,7 +77,7 @@ export default Backbone.View.extend({
       new viewObject({
         model,
         config,
-        componentTypes: dt
+        componentTypes: dt,
       });
     let rendered;
 
@@ -115,14 +115,18 @@ export default Backbone.View.extend({
       }
     }
 
+    if (!model.opt.temporary) {
+      em?.trigger('component:mount', model);
+    }
+
     return rendered;
-  },
+  }
 
   resetChildren(models, { previousModels = [] } = {}) {
     this.parentEl.innerHTML = '';
     previousModels.forEach(md => this.removeChildren(md, this.collection));
     models.each(model => this.addToCollection(model));
-  },
+  }
 
   render(parent) {
     const el = this.el;
@@ -133,4 +137,4 @@ export default Backbone.View.extend({
     el.appendChild(frag);
     return this;
   }
-});
+}

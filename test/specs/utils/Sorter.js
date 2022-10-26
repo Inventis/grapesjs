@@ -1,15 +1,19 @@
-// import Sorter from '../../../src/utils/Sorter.js'
+import Backbone from 'backbone';
+import Sorter from 'utils/Sorter';
+import ComponentTextView from 'dom_components/view/ComponentTextView';
+import Component from 'dom_components/model/Component';
+const $ = Backbone.$;
 
 // TODO: Migrate this file to Jest
 
-describe.skip('Sorter', () => {
+describe('Sorter', () => {
   var fixture;
   var obj;
   var parent;
   var plh;
   var html;
 
-  beforeAll(function() {
+  beforeAll(function () {
     fixture = $('<div class="sorter-fixture"></div>').get(0);
   });
 
@@ -21,32 +25,32 @@ describe.skip('Sorter', () => {
     obj = new Sorter({ container: '.parent1' });
     document.body.appendChild(fixture);
     fixture.appendChild(parent);
-    html =
-      '<div id="el1" style="overflow: hidden;">' +
-      '<div id="el2">ba' +
-      '<p id="baa">baa</p>' +
-      '<span id="elspan">bab</span>' +
-      '<span id="bac" style="display:block;">bac</span>' +
-      '<div id="eldiv">eldiv</div>' +
-      '</div>' +
-      '</div>' +
-      '<div id="a">' +
-      '<div id="aa">aa' +
-      '<p id="aaa">aaa</p>' +
-      '<span id="aab">aab</span>' +
-      '<span id="aac" style="display:block;">aac</span>' +
-      '</div>' +
-      '<div id="ab" style="float: left;">ab</div>' +
-      '<div id="ac" style="position: absolute;">ac' +
-      '<div id="aca" style="float: left;">aca</div>' +
-      '<div id="acb">acb</div>' +
-      '</div>' +
-      '<div id="ad" style="overflow: hidden;">ad' +
-      '<p id="ada">ada</p>' +
-      '<span id="adb">adb</span>' +
-      '<span id="adc" style="display:block;">adc</span>' +
-      '</div>' +
-      '</div>';
+    html = `
+      <div id="el1" style="overflow: hidden;">
+        <div id="el2">ba
+            <p id="baa">baa</p>
+            <span id="elspan">bab</span>
+            <span id="bac" style="display:block;">bac</span>
+            <div id="eldiv">eldiv</div>
+        </div>
+      </div>
+      <div id="a">
+        <div id="aa">aa
+          <p id="aaa">aaa</p>
+          <span id="aab">aab</span>
+          <span id="aac" style="display:block;">aac</span>
+        </div>
+        <div id="ab" style="float: left;">ab</div>
+        <div id="ac" style="position: absolute;">ac
+          <div id="aca" style="float: left;">aca</div>
+          <div id="acb">acb</div>
+        </div>
+        <div id="ad" style="overflow: hidden;">ad
+          <p id="ada">ada</p>
+          <span id="adb">adb</span>
+          <span id="adc" style="display:block;">adc</span>
+        </div>
+      </div>`;
   });
 
   afterEach(() => {
@@ -60,36 +64,36 @@ describe.skip('Sorter', () => {
     var el = document.createElement('div');
     el.setAttribute('class', 'test test2');
     parent.appendChild(el);
-    obj.matches(el, '.test').should.equal(true);
-    obj.matches(el, '.test2').should.equal(true);
-    obj.matches(el, '.test3').should.equal(false);
+    expect(obj.matches(el, '.test')).toEqual(true);
+    expect(obj.matches(el, '.test2')).toEqual(true);
+    expect(obj.matches(el, '.test3')).toEqual(false);
   });
 
   test('matches id', () => {
     var el = document.createElement('div');
     el.setAttribute('id', 'test2');
     parent.appendChild(el);
-    obj.matches(el, '#test2').should.equal(true);
-    obj.matches(el, '.test2').should.equal(false);
-    obj.matches(el, '#test').should.equal(false);
+    expect(obj.matches(el, '#test2')).toEqual(true);
+    expect(obj.matches(el, '.test2')).toEqual(false);
+    expect(obj.matches(el, '#test')).toEqual(false);
   });
 
   test('matches tag', () => {
     var el = document.createElement('span');
     parent.appendChild(el);
-    obj.matches(el, 'span').should.equal(true);
-    obj.matches(el, 'div').should.equal(false);
-    obj.matches(el, '*').should.equal(true);
+    expect(obj.matches(el, 'span')).toEqual(true);
+    expect(obj.matches(el, 'div')).toEqual(false);
+    expect(obj.matches(el, '*')).toEqual(true);
   });
 
   test('Creates placeholder', () => {
-    obj.createPlaceholder().className.should.equal('placeholder');
+    expect(obj.createPlaceholder().className).toEqual('placeholder');
   });
 
   test('isInFlow to overflow hidden', () => {
     parent.innerHTML = html;
     var el = parent.querySelector('#el1');
-    obj.isInFlow(el).should.equal(false);
+    expect(obj.isInFlow(el)).toEqual(false);
   });
 
   test('isInFlow inner to overflow', () => {
@@ -99,13 +103,13 @@ describe.skip('Sorter', () => {
       console.log('phantom issue');
       return;
     }
-    obj.isInFlow(el).should.equal(true);
+    expect(obj.isInFlow(el)).toEqual(true);
   });
 
   test('isInFlow for span', () => {
     parent.innerHTML = html;
     var el = parent.querySelector('#elspan');
-    obj.isInFlow(el).should.equal(false);
+    expect(obj.isInFlow(el)).toEqual(false);
   });
 
   test('isInFlow for div #a', () => {
@@ -115,7 +119,7 @@ describe.skip('Sorter', () => {
       console.log('phantom issue');
       return;
     }
-    obj.isInFlow(el).should.equal(true);
+    expect(obj.isInFlow(el)).toEqual(true);
   });
 
   test('isInFlow for div #aa', () => {
@@ -125,7 +129,7 @@ describe.skip('Sorter', () => {
       console.log('phantom issue');
       return;
     }
-    obj.isInFlow(el).should.equal(true);
+    expect(obj.isInFlow(el)).toEqual(true);
   });
 
   test('isInFlow for p #aaa', () => {
@@ -135,13 +139,13 @@ describe.skip('Sorter', () => {
       console.log('phantom issue');
       return;
     }
-    obj.isInFlow(el).should.equal(true);
+    expect(obj.isInFlow(el)).toEqual(true);
   });
 
   test('isInFlow for span #aab', () => {
     parent.innerHTML = html;
     var el = parent.querySelector('#aab');
-    obj.isInFlow(el).should.equal(false);
+    expect(obj.isInFlow(el)).toEqual(false);
   });
 
   test('isInFlow for span #aac with display block', () => {
@@ -150,19 +154,19 @@ describe.skip('Sorter', () => {
     if (!el)
       // in phantom doesnt work
       return;
-    obj.isInFlow(el).should.equal(true);
+    expect(obj.isInFlow(el)).toEqual(true);
   });
 
   test('isInFlow for div #ab with float left', () => {
     parent.innerHTML = html;
     var el = parent.querySelector('#ab');
-    obj.isInFlow(el).should.equal(false);
+    expect(obj.isInFlow(el)).toEqual(false);
   });
 
   test('isInFlow for div #ac in absolute', () => {
     parent.innerHTML = html;
     var el = parent.querySelector('#ac');
-    obj.isInFlow(el).should.equal(false);
+    expect(obj.isInFlow(el)).toEqual(false);
   });
 
   test('isInFlow for div #acb inside absolute', () => {
@@ -172,13 +176,13 @@ describe.skip('Sorter', () => {
       console.log('phantom issue');
       return;
     }
-    obj.isInFlow(el).should.equal(true);
+    expect(obj.isInFlow(el)).toEqual(true);
   });
 
   test('isInFlow for div #ad overflow hidden', () => {
     parent.innerHTML = html;
     var el = parent.querySelector('#ad');
-    obj.isInFlow(el).should.equal(false);
+    expect(obj.isInFlow(el)).toEqual(false);
   });
 
   describe('Closest method', () => {
@@ -197,22 +201,22 @@ describe.skip('Sorter', () => {
     test('Closest by class', () => {
       var el = document.createElement('div');
       parent3.appendChild(el);
-      obj.closest(el, '.parent2').should.deep.equal(parent2);
-      obj.closest(el, '.parent3').should.deep.equal(parent3);
-      obj.closest(el, '.parent1').should.deep.equal(parent);
+      expect(obj.closest(el, '.parent2')).toEqual(parent2);
+      expect(obj.closest(el, '.parent3')).toEqual(parent3);
+      expect(obj.closest(el, '.parent1')).toEqual(parent);
     });
 
     test('Closest by tag', () => {
       var el = document.createElement('div');
       el.setAttribute('class', 'el');
       parent3.appendChild(el);
-      obj.closest(el, 'span').should.deep.equal(parent2);
-      obj.closest(el, 'div').should.deep.equal(parent3);
-      obj.closest(el, '*').should.deep.equal(parent3);
+      expect(obj.closest(el, 'span')).toEqual(parent2);
+      expect(obj.closest(el, 'div')).toEqual(parent3);
+      expect(obj.closest(el, '*')).toEqual(parent3);
     });
   });
 
-  describe('With elements', () => {
+  describe.skip('With elements', () => {
     var vertDims;
     var parent2;
     var parent3;
@@ -256,14 +260,14 @@ describe.skip('Sorter', () => {
         [0, 0, 50, 100, true],
         [50, 0, 50, 100, true],
         [100, 0, 50, 100, true],
-        [150, 0, 50, 70, true]
+        [150, 0, 50, 70, true],
       ];
     });
 
     test('startSort inits correctly inits', () => {
       obj.startSort(el);
-      obj.moved.should.equal(0);
-      obj.plh.style.display.should.equal('none');
+      expect(obj.moved).toEqual(0);
+      expect(obj.plh.style.display).toEqual('none');
     });
 
     test('onMove', () => {
@@ -272,9 +276,9 @@ describe.skip('Sorter', () => {
       obj.onMove({
         pageX: 0,
         pageY: 0,
-        target: target
+        target: target,
       });
-      obj.moved.should.equal(1);
+      expect(obj.moved).toEqual(1);
     });
 
     test('getDim from element', () => {
@@ -282,14 +286,14 @@ describe.skip('Sorter', () => {
       var top = subPos.top;
       var left = subPos.left;
       var result = [top, left, 50, 100];
-      obj.getDim(sib1).should.deep.equal(result);
+      expect(obj.getDim(sib1)).toEqual(result);
     });
 
     test('getChildrenDim from element', () => {
       el.style.position = 'absolute';
       el.style.top = '0';
       var ch = obj.getChildrenDim(el);
-      ch = ch.map(function(v) {
+      ch = ch.map(function (v) {
         return v.slice(0, 5);
       });
       var subPos = obj.offset(sib1);
@@ -299,17 +303,17 @@ describe.skip('Sorter', () => {
         [top, left, 50, 100, true],
         [top + 50, left + 0, 50, 100, true],
         [top + 100, left + 0, 50, 100, true],
-        [top + 100, left + 100, 50, 70, true]
+        [top + 100, left + 100, 50, 70, true],
       ];
-      ch.should.deep.equal(result);
+      expect(ch).toEqual(result);
     });
 
     test('nearBorders', () => {
       obj.borderOffset = 10;
       var dim = [0, 0, 100, 200];
-      obj.nearBorders(dim, 20, 15).should.equal(false);
-      obj.nearBorders(dim, 3, 4).should.equal(true);
-      obj.nearBorders(dim, 500, 500).should.equal(true);
+      expect(obj.nearBorders(dim, 20, 15)).toEqual(false);
+      expect(obj.nearBorders(dim, 3, 4)).toEqual(true);
+      expect(obj.nearBorders(dim, 500, 500)).toEqual(true);
     });
 
     test('dimsFromTarget', () => {
@@ -331,48 +335,41 @@ describe.skip('Sorter', () => {
         [top, left, 50, 100, true],
         [top + 50, left + 0, 50, 100, true],
         [topSib3, leftSib3, 50, 100, true],
-        [top + 100, left + 100, 50, 70, true]
+        [top + 100, left + 100, 50, 70, true],
       ];
       var resultChildren = [
         [topSib3, leftSib3, 30, 30, true],
-        [topSib3 + 30, left + 0, 20, 30, true]
+        [topSib3 + 30, left + 0, 20, 30, true],
       ];
 
       var dims = obj.dimsFromTarget(sib3);
-      dims = dims.map(function(v) {
+      dims = dims.map(function (v) {
         return v.slice(0, 5);
       });
-      dims.should.deep.equal(resultParent);
+
+      expect(dims).toEqual(resultParent);
 
       // Inside target
       var dims = obj.dimsFromTarget(sib3, leftSib3 + 15, topSib3 + 15);
-      dims = dims.map(function(v) {
+      dims = dims.map(function (v) {
         return v.slice(0, 5);
       });
-      dims.should.deep.equal(resultChildren);
+      expect(dims).toEqual(resultChildren);
 
       // Exactly on border
       var bOffset = obj.borderOffset;
-      var dims = obj.dimsFromTarget(
-        sib3,
-        leftSib3 + bOffset,
-        topSib3 + bOffset
-      );
-      dims = dims.map(function(v) {
+      var dims = obj.dimsFromTarget(sib3, leftSib3 + bOffset, topSib3 + bOffset);
+      dims = dims.map(function (v) {
         return v.slice(0, 5);
       });
-      dims.should.deep.equal(resultChildren);
+      expect(dims).toEqual(resultChildren);
 
       // Slightly near border
-      var dims = obj.dimsFromTarget(
-        sib3,
-        leftSib3 + bOffset - 3,
-        topSib3 + bOffset
-      );
-      dims = dims.map(function(v) {
+      var dims = obj.dimsFromTarget(sib3, leftSib3 + bOffset - 3, topSib3 + bOffset);
+      dims = dims.map(function (v) {
         return v.slice(0, 5);
       });
-      dims.should.deep.equal(resultParent);
+      expect(dims).toEqual(resultParent);
     });
 
     describe('findPosition', () => {
@@ -380,23 +377,23 @@ describe.skip('Sorter', () => {
 
       test('Vertical dimensions', () => {
         var result = { index: 0, method: 'before' };
-        obj.findPosition(vertDims, -10, -10).should.deep.equal(result);
-        obj.findPosition(vertDims, 0, 0).should.deep.equal(result);
-        obj.findPosition(vertDims, 10, 10).should.deep.equal(result);
+        expect(obj.findPosition(vertDims, -10, -10)).toEqual(result);
+        expect(obj.findPosition(vertDims, 0, 0)).toEqual(result);
+        expect(obj.findPosition(vertDims, 10, 10)).toEqual(result);
 
         var result = { index: 1, method: 'before' };
-        obj.findPosition(vertDims, 10, 30).should.deep.equal(result);
-        obj.findPosition(vertDims, 10, 70).should.deep.equal(result);
+        expect(obj.findPosition(vertDims, 10, 30)).toEqual(result);
+        expect(obj.findPosition(vertDims, 10, 70)).toEqual(result);
 
         var result = { index: 2, method: 'before' };
-        obj.findPosition(vertDims, 10, 76).should.deep.equal(result);
+        expect(obj.findPosition(vertDims, 10, 76)).toEqual(result);
 
         var result = { index: 3, method: 'before' };
-        obj.findPosition(vertDims, 100, 140).should.deep.equal(result);
-        obj.findPosition(vertDims, 100, 160).should.deep.equal(result);
+        expect(obj.findPosition(vertDims, 100, 140)).toEqual(result);
+        expect(obj.findPosition(vertDims, 100, 160)).toEqual(result);
 
         var result = { index: 3, method: 'after' };
-        obj.findPosition(vertDims, 1000, 1000).should.deep.equal(result);
+        expect(obj.findPosition(vertDims, 1000, 1000)).toEqual(result);
       });
     });
 
@@ -406,7 +403,7 @@ describe.skip('Sorter', () => {
           [0, 10, 50, 100, true],
           [50, 20, 50, 70, true],
           [100, 30, 50, 100, true],
-          [150, 40, 50, 70, true]
+          [150, 40, 50, 70, true],
         ];
       });
 
@@ -414,19 +411,178 @@ describe.skip('Sorter', () => {
         var pos = { index: 2, method: 'before' };
         obj.movePlaceholder(plh, vertDims, pos);
         var style = plh.style;
-        style.top.should.equal('100px');
-        style.left.should.equal('30px');
-        style.width.should.equal('100px');
+        expect(style.top).toEqual('100px');
+        expect(style.left).toEqual('30px');
+        expect(style.width).toEqual('100px');
       });
 
       test('Vertical dimensions with after position', () => {
         var pos = { index: 1, method: 'after' };
         obj.movePlaceholder(plh, vertDims, pos);
         var style = plh.style;
-        style.top.should.equal('100px');
-        style.left.should.equal('20px');
-        style.width.should.equal('70px');
+        expect(style.top).toEqual('100px');
+        expect(style.left).toEqual('20px');
+        expect(style.width).toEqual('70px');
       });
+    });
+  });
+
+  describe('Valid Target with components', () => {
+    describe('Droppable', () => {
+      var parentModel;
+      var parentView;
+
+      beforeEach(() => {
+        parentModel = new Component({
+          droppable: (srcModel, trgModel) => {
+            return srcModel.getEl().className === 'canDrop';
+          },
+        });
+        parentView = new ComponentTextView({
+          model: parentModel,
+        });
+      });
+
+      afterEach(() => {
+        parentView.remove();
+      });
+
+      test('Droppable function', () => {
+        var srcModel = new Component({
+          tagName: 'div',
+          draggable: true,
+          content: 'Content text',
+          attributes: { class: 'canDrop' },
+        });
+        var srcView = new ComponentTextView({
+          model: srcModel,
+        });
+
+        expect(obj.validTarget(parentView.el, srcView.el).valid).toEqual(true);
+      });
+
+      test('Not droppable function', () => {
+        var srcModel = new Component({
+          tagName: 'div',
+          draggable: true,
+          content: 'Content text',
+          attributes: { class: 'cannotDrop' },
+        });
+        var srcView = new ComponentTextView({
+          model: srcModel,
+        });
+
+        expect(obj.validTarget(parentView.el, srcView.el).valid).toEqual(false);
+      });
+    });
+
+    describe('Draggable', () => {
+      var srcModel;
+      var srcView;
+
+      beforeEach(() => {
+        srcModel = new Component({
+          draggable: (srcModel, trgModel) => {
+            return trgModel.getEl().className === 'canDrag';
+          },
+        });
+        srcView = new ComponentTextView({
+          model: srcModel,
+        });
+      });
+
+      afterEach(() => {
+        srcView.remove();
+      });
+
+      test('Draggable function', () => {
+        var parentModel = new Component({
+          tagName: 'div',
+          droppable: true,
+          content: 'Content text',
+          attributes: { class: 'canDrag' },
+        });
+        var parentView = new ComponentTextView({
+          model: parentModel,
+        });
+
+        expect(obj.validTarget(parentView.el, srcView.el).valid).toEqual(true);
+      });
+
+      test('Not draggable function', () => {
+        var parentModel = new Component({
+          tagName: 'div',
+          droppable: true,
+          content: 'Content text',
+          attributes: { class: 'cannotDrag' },
+        });
+        var parentView = new ComponentTextView({
+          model: parentModel,
+        });
+
+        expect(obj.validTarget(parentView.el, srcView.el).valid).toEqual(false);
+      });
+    });
+  });
+  describe('Parents', () => {
+    var child00;
+    var child01;
+    var child0;
+    var child10;
+    var child1;
+    var child2;
+    var root;
+    beforeAll(() => {
+      child00 = new Component({
+        tagName: 'div',
+        name: 'child00',
+      });
+      child01 = new Component({
+        tagName: 'div',
+        name: 'child01',
+      });
+      child0 = new Component({
+        tagName: 'div',
+        name: 'child0',
+        components: [child00, child01],
+      });
+      child10 = new Component({
+        tagName: 'div',
+        name: 'child10',
+      });
+      child1 = new Component({
+        tagName: 'div',
+        name: 'child1',
+        components: [child10],
+      });
+      child2 = new Component({
+        tagName: 'div',
+        name: 'child2',
+      });
+      root = new Component({
+        tagName: 'div',
+        name: 'root',
+        components: [child0, child1, child2],
+      });
+    });
+    test('Parents', () => {
+      expect(obj.parents(root)).toEqual([root]);
+      expect(obj.parents(child0)).toEqual([child0, root]);
+      expect(obj.parents(child00)).toEqual([child00, child0, root]);
+    });
+    test('Sort', () => {
+      const withParents = model => ({ model, parents: obj.parents(model) });
+      expect(obj.sort(withParents(child00), withParents(child1))).toEqual(1);
+      expect(obj.sort(withParents(child00), withParents(child01))).toEqual(1);
+      expect(obj.sort(withParents(child00), withParents(child10))).toEqual(1);
+      expect(obj.sort(withParents(child1), withParents(child2))).toEqual(1);
+      expect(obj.sort(withParents(child10), withParents(child2))).toEqual(1);
+
+      expect(obj.sort(withParents(child1), withParents(child00))).toEqual(-1);
+      expect(obj.sort(withParents(child01), withParents(child00))).toEqual(-1);
+      expect(obj.sort(withParents(child10), withParents(child00))).toEqual(-1);
+      expect(obj.sort(withParents(child2), withParents(child1))).toEqual(-1);
+      expect(obj.sort(withParents(child2), withParents(child10))).toEqual(-1);
     });
   });
 });

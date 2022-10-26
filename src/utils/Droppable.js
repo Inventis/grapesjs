@@ -2,8 +2,8 @@
   This class makes the canvas droppable
  */
 
-import { on, off } from 'utils/mixins';
 import { bindAll, indexOf } from 'underscore';
+import { on, off } from './mixins';
 
 export default class Droppable {
   constructor(em, rootEl) {
@@ -13,17 +13,11 @@ export default class Droppable {
       em
         .get('Canvas')
         .getFrames()
-        .map(frame => frame.get('root').getEl());
+        .map(frame => frame.getComponent().getEl());
     const els = Array.isArray(el) ? el : [el];
     this.el = el;
     this.counter = 0;
-    bindAll(
-      this,
-      'handleDragEnter',
-      'handleDragOver',
-      'handleDrop',
-      'handleDragLeave'
-    );
+    bindAll(this, 'handleDragEnter', 'handleDragOver', 'handleDrop', 'handleDragLeave');
     els.forEach(el => this.toggleEffects(el, 1));
 
     return this;
@@ -38,10 +32,46 @@ export default class Droppable {
     methods[method](el, 'dragleave', this.handleDragLeave);
   }
 
+  __customTglEff(enable) {
+    const method = enable ? on : off;
+    const doc = this.el.ownerDocument;
+    const frameEl = doc.defaultView.frameElement;
+    this.sortOpts = enable
+      ? {
+          onStart({ sorter }) {
+            on(frameEl, 'pointermove', sorter.onMove);
+          },
+          onEnd({ sorter }) {
+            off(frameEl, 'pointermove', sorter.onMove);
+          },
+          customTarget({ event }) {
+            return doc.elementFromPoint(event.clientX, event.clientY);
+          },
+        }
+      : null;
+    method(frameEl, 'pointerenter', this.handleDragEnter);
+    method(frameEl, 'pointermove', this.handleDragOver);
+    method(document, 'pointerup', this.handleDrop);
+    method(frameEl, 'pointerout', this.handleDragLeave);
+
+    // Test with touch devices (seems like frameEl is not capturing pointer events).
+    // on/off(document, 'pointermove', sorter.onMove); // for the sorter
+    // enable && this.handleDragEnter({}); // no way to use pointerenter/pointerout
+  }
+
+  startCustom() {
+    this.__customTglEff(true);
+  }
+
+  endCustom(cancel) {
+    this.over ? this.endDrop(cancel) : this.__customTglEff(false);
+  }
+
   endDrop(cancel, ev) {
     const { em, dragStop } = this;
     this.counter = 0;
     dragStop && dragStop(cancel);
+    this.__customTglEff(false);
     em.trigger('canvas:dragend', ev);
   }
 
@@ -62,7 +92,6 @@ export default class Droppable {
     this.over = 1;
     const utils = em.get('Utils');
     const canvas = em.get('Canvas');
-    const container = canvas.getBody();
     // For security reason I can't read the drag data on dragenter, but
     // as I need it for the Sorter context I will use `dragContent` or just
     // any not empty element
@@ -83,12 +112,17 @@ export default class Droppable {
           let comp;
           if (!cancelled) {
             comp = wrapper.append(content)[0];
-            const { left, top, position } = target.getStyle();
-            comp.addStyle({ left, top, position });
+            const canvasOffset = canvas.getOffset();
+            const { top, left, position } = target.getStyle();
+            comp.addStyle({
+              left: parseFloat(left) - canvasOffset.left + 'px',
+              top: parseFloat(top) - canvasOffset.top + 'px',
+              position,
+            });
           }
           this.handleDragEnd(comp, dt);
           target.remove();
-        }
+        },
       });
       dragStop = cancel => dragger.stop(ev, { cancel });
       dragContent = cnt => (content = cnt);
@@ -99,13 +133,14 @@ export default class Droppable {
         nested: 1,
         canvasRelative: 1,
         direction: 'a',
-        container,
+        container: this.el,
         placer: canvas.getPlacerEl(),
         containerSel: '*',
         itemSel: '*',
         pfx: 'gjs-',
         onEndMove: model => this.handleDragEnd(model, dt),
-        document: canvas.getFrameEl().contentDocument
+        document: this.el.ownerDocument,
+        ...(this.sortOpts || {}),
       });
       sorter.setDropContent(content);
       sorter.startSort();
@@ -155,12 +190,12 @@ export default class Droppable {
     this.endDrop(!content, ev);
   }
 
-  getContentByData(dataTransfer) {
+  getContentByData(dt) {
     const em = this.em;
-    const types = dataTransfer.types;
-    const files = dataTransfer.files || [];
+    const types = dt && dt.types;
+    const files = (dt && dt.files) || [];
     const dragContent = em.get('dragContent');
-    let content = dataTransfer.getData('text');
+    let content = dt && dt.getData('text');
 
     if (files.length) {
       content = [];
@@ -172,24 +207,22 @@ export default class Droppable {
           content.push({
             type,
             file,
-            attributes: { alt: file.name }
+            attributes: { alt: file.name },
           });
         }
       }
     } else if (dragContent) {
       content = dragContent;
     } else if (indexOf(types, 'text/html') >= 0) {
-      content = dataTransfer
-        .getData('text/html')
-        .replace(/<\/?meta[^>]*>/g, '');
+      content = dt && dt.getData('text/html').replace(/<\/?meta[^>]*>/g, '');
     } else if (indexOf(types, 'text/uri-list') >= 0) {
       content = {
         type: 'link',
         attributes: { href: content },
-        content: content
+        content: content,
       };
     } else if (indexOf(types, 'text/json') >= 0) {
-      const json = dataTransfer.getData('text/json');
+      const json = dt && dt.getData('text/json');
       json && (content = JSON.parse(json));
     } else if (types.length === 1 && types[0] === 'text/plain') {
       // Avoid dropping non-selectable and non-editable text nodes inside the editor
@@ -197,7 +230,7 @@ export default class Droppable {
     }
 
     const result = { content };
-    em.trigger('canvas:dragdata', dataTransfer, result);
+    em.trigger('canvas:dragdata', dt, result);
 
     return result;
   }

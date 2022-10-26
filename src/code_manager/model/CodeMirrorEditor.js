@@ -1,44 +1,49 @@
 import { bindAll } from 'underscore';
-import Backbone from 'backbone';
-import CodeMirror from 'codemirror/lib/codemirror';
-import 'codemirror/mode/htmlmixed/htmlmixed';
-import 'codemirror/mode/css/css';
-import 'codemirror-formatting';
+import { Model } from '../../common';
+import { hasWin } from '../../utils/mixins';
 
-export default Backbone.Model.extend({
-  CodeMirror,
+let CodeMirror;
 
-  defaults: {
-    input: '',
-    label: '',
-    codeName: '',
-    theme: 'hopscotch',
-    readOnly: true,
-    lineNumbers: true
-  },
+if (hasWin()) {
+  CodeMirror = require('codemirror/lib/codemirror');
+  require('codemirror/mode/htmlmixed/htmlmixed');
+  require('codemirror/mode/css/css');
+  require('codemirror-formatting');
+}
 
-  /** @inheritdoc */
+export default class CodeMirrorEditor extends Model {
+  defaults() {
+    return {
+      input: '',
+      label: '',
+      codeName: '',
+      theme: 'hopscotch',
+      readOnly: true,
+      lineNumbers: true,
+    };
+  }
+
   init(el) {
     bindAll(this, 'onChange');
     this.editor = CodeMirror.fromTextArea(el, {
       dragDrop: false,
       lineWrapping: true,
       mode: this.get('codeName'),
-      ...this.attributes
+      ...this.attributes,
     });
     this.element = el;
     this.editor.on('change', this.onChange);
 
     return this;
-  },
+  }
 
   onChange() {
     this.trigger('update', this);
-  },
+  }
 
   getEditor() {
     return this.editor;
-  },
+  }
 
   /**
    * The element where the viewer is attached
@@ -46,7 +51,7 @@ export default Backbone.Model.extend({
    */
   getElement() {
     return this.element;
-  },
+  }
 
   /**
    * Set the element which contains the viewer attached.
@@ -58,7 +63,7 @@ export default Backbone.Model.extend({
   setElement(el) {
     this.element = el;
     return this;
-  },
+  }
 
   /**
    * Refresh the viewer
@@ -67,7 +72,7 @@ export default Backbone.Model.extend({
   refresh() {
     this.getEditor().refresh();
     return this;
-  },
+  }
 
   /**
    * Focus the viewer
@@ -76,12 +81,12 @@ export default Backbone.Model.extend({
   focus() {
     this.getEditor().focus();
     return this;
-  },
+  }
 
   getContent() {
     const ed = this.getEditor();
     return ed && ed.getValue();
-  },
+  }
 
   /** @inheritdoc */
   setContent(v, opts = {}) {
@@ -97,4 +102,6 @@ export default Backbone.Model.extend({
 
     !opts.noRefresh && setTimeout(() => this.refresh());
   }
-});
+}
+
+CodeMirrorEditor.prototype.CodeMirror = CodeMirror;
