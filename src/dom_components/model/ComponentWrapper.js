@@ -22,6 +22,11 @@ export default class ComponentWrapper extends Component {
     };
   }
 
+  toHTML(opts = {}) {
+    // We don't want to render the wrapper itself in the output.
+    return super.getInnerHTML(opts);
+  }
+
   __postAdd() {
     const um = this.em && this.em.get('UndoManager');
     um && !this.__hasUm && um.add(this);
