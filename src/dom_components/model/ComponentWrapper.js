@@ -4,7 +4,7 @@ export default class ComponentWrapper extends Component {
   defaults() {
     return {
       ...super.defaults,
-      tagName: 'body',
+      tagName: 'div',
       removable: false,
       copyable: false,
       draggable: false,
