@@ -524,10 +524,31 @@ export default class CanvasModule extends Module<typeof defaults> {
     const frame = this.getFrameEl();
     //console.log(this.config)
     const toIgnore = ['body', ...this.config.notTextable];
-    const docActive = frame && document.activeElement === frame;
+    const docActive = frame && this.isGrapesIframeActive(frame);
     const focused = docActive ? doc && doc.activeElement : document.activeElement;
 
     return focused && !toIgnore.some(item => focused.matches(item));
+  }
+
+  /* Check if the GrapeJS iframe is focused
+   * @param frame
+   */
+  isGrapesIframeActive(frame: HTMLIFrameElement): boolean {
+    let activeElement = document.activeElement;
+    while (activeElement instanceof HTMLIFrameElement) {
+      if (activeElement.contentDocument === null) {
+        return false;
+      }
+      activeElement = activeElement.contentDocument.activeElement;
+      if (activeElement === null) {
+        return false;
+      }
+
+      if (activeElement === frame) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
